@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="http://fb.me/react-0.13.3.js"></script>
+    <script src="http://fb.me/JSXTransformer-0.13.3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.24/browser.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="content"></div>
+    <div class="container">
+      container
+    </div>
+    <div class="ct-chart ct-golden-section" id="chart1"></div>
+    <div class="ct-chart ct-golden-section" id="chart2"></div>
+    <script type="text/jsx">
+    var CommentBox = React.createClass({
+      loadCommentsFromServer :function(){
+        $.ajax({
+          url: this.props.url,
+          dataType: 'jsonp',
+          cache: false,
+          success: function(data) {
+            this.setState({data: data.results});
+          }.bind(this),
+          error: function(xhr, status, err) {
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+      },
+      getInitialState: function(){
+        return {data: []};
+      },
+      componentDidMount: function() {
+        this.loadCommentsFromServer();
+      },
+      render: function(){
+        return (
+          <div className="commentBox">
+            <h1>Comments</h1>
+            <CommentList data={this.state.data} />
+          </div>
+        );
+      }
+    });
+    var CommentList = React.createClass({
+      render: function() {
+       var commentNodes = this.props.data.map(function (comment) {
+          return (
+            <div author={comment.address1}>
+              {comment.address2}
+            </div>
+          );
+        });
+        return (
+          <div className="commentList">
+            {commentNodes}
+          </div>
+        );
+      }
+    });
+    class ChartistRenderer{
+      render(targetSelector, props){
+        let {data} = props
+        var chart = new Chartist.Bar(targetSelector, {
+          labels: data[0],
+          series: [ data[1] ]
+        })
+      }
+    }
+    class Chart extends React.Component{
+      constructor(){
+        super()
+        this.chartClassName = "chart"
+        this.renderer = new ChartistRenderer()
+      }
+      componentDidMount(){
+        this.renderChart()
+      }
+      componentDidUpdate(){
+        this.renderChart()
+      }
+
+      renderChart(){
+        var targetSelector = "." + this.chartClassName
+        this.renderer.render(targetSelector, this.props)
+      }
+      render(){
+        return <div className={this.chartClassName}  ></div>
+      }
+    }
+    var data = [
+      ["foo", "baz", "bar"],
+      [1, 10, 20]
+    ]
+
+    var body = document.querySelector('.container')
+    React.render(<Chart data={data} />, body);
+
+    var series = [[100, 120, 180, 200]];
+    // Initialize a Line chart in the container with the ID chart1
+    new Chartist.Line('#chart1', {
+      labels: [1, 2, 3, 4],
+      series: series
+    });
+
+    // Initialize a Line chart in the container with the ID chart2
+    new Chartist.Bar('#chart2', {
+      labels: [1, 2, 3, 4],
+      series: [[5, 2, 8, 3]]
+    });
+    </script>
+  </body>
+</html>
